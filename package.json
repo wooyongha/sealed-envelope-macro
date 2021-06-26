@@ -1,0 +1,16 @@
+{
+  "name": "sealed-envelope-macro",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "cheerio": "*",
+    "puppeteer": "^10.0.0"
+  }
+}
