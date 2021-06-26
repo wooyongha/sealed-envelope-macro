@@ -9,8 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.21.1",
     "cheerio": "*",
+    "lodash": "^4.17.21",
     "puppeteer": "^10.0.0"
   }
 }

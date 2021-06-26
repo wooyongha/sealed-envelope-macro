@@ -6,7 +6,7 @@ const INIT_SEED_NUMBER = 1;
 const ASYNC_TASK_COUNT = 5; // 20개 주면 컴퓨터 멈춰여 ㅠㅠ
 const URL = 'https://www.sealedenvelope.com/simple-randomiser/v1/lists';
 
-const fillTheFormAndSend = async (page, seedNumber) => page.evaluate((seedNumber) => {
+const fillTheFormAndSend = (page, seedNumber) => page.evaluate((seedNumber) => {
   const seed = document.querySelector('.form-group:nth-of-type(1) input:first-of-type');
   const treatmentGroups = document.querySelector('.form-group:nth-of-type(2) input:first-of-type');
   const blockSizes = document.querySelector('.form-group:nth-of-type(3) input:first-of-type');
