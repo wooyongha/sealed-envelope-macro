@@ -3,7 +3,7 @@ const cheerio = require('cheerio');
 const _ = require('lodash');
 
 const INIT_SEED_NUMBER = 1;
-const ASYNC_TASK_COUNT = 5; // 20개 주면 컴퓨터 멈춰여 ㅠㅠ
+const ASYNC_TASK_COUNT = 3; // 3개만 줘도 컴퓨터가 힘들어요 ㅠㅠ
 const URL = 'https://www.sealedenvelope.com/simple-randomiser/v1/lists';
 
 const fillTheFormAndSend = (page, seedNumber) => page.evaluate((seedNumber) => {
