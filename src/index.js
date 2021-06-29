@@ -6,6 +6,39 @@ const INIT_SEED_NUMBER = 1;
 const ASYNC_TASK_COUNT = 3; // 3개만 줘도 컴퓨터가 힘들어요 ㅠㅠ
 const URL = 'https://www.sealedenvelope.com/simple-randomiser/v1/lists';
 
+(async () => {
+  let seedDelta = 0;
+
+  const browserList = [];
+  const seedNumberList = [];
+  for (let seq = 0; seq < ASYNC_TASK_COUNT; seq++) {
+    const browser = await puppeteer.launch();
+    browserList.push(browser);
+    seedNumberList.push(INIT_SEED_NUMBER + seq);
+  }
+
+  while (true) {
+    const resultList = await Promise.all(
+        browserList.map(async (browser, seq) => {
+          const seedNumber = seedNumberList[seq] + seedDelta;
+          const page = await browser.newPage();
+          await page.goto(URL);
+          await fillTheFormAndSend(page, seedNumber);
+          process.stdout.write(seedNumber + '\n');
+          return { seedNumber, isMatched: await isThisWhatYouWant(page)};
+        })
+    );
+    process.stdout.write('---------------\n');
+    const matched = _.find(resultList, { isMatched: true });
+    if (matched !== undefined) {
+      console.log('MATCHED SEED: ' + matched.seedNumber)
+      break;
+    }
+    seedDelta += ASYNC_TASK_COUNT;
+  }
+  browserList.forEach(browser => browser.close());
+})();
+
 const fillTheFormAndSend = (page, seedNumber) => page.evaluate((seedNumber) => {
   const seed = document.querySelector('.form-group:nth-of-type(1) input:first-of-type');
   const treatmentGroups = document.querySelector('.form-group:nth-of-type(2) input:first-of-type');
@@ -25,6 +58,7 @@ const fillTheFormAndSend = (page, seedNumber) => page.evaluate((seedNumber) => {
 const isThisWhatYouWant = async (page) => {
   await page.waitForSelector('.pale');
   const $ = cheerio.load(await page.content());
+  await page.close();
 
   const shouldMatchList = [
     [2,2,1,1,2,1,2,1,2,1,2,1,1,2,2,1,2,1,1,2,2,2,1,1,2,1,1,2,2,1,1,2,1,1,2,2,2,1,2,1,1,2,2,1,2,1,1,2,2,2,1,1,1],
@@ -47,8 +81,8 @@ const isThisWhatYouWant = async (page) => {
     [2,2,1,1,2,1,2,1,2,1,1,2,1,2,2,1,2,1,1,2,2,2,1,1,2,1,1,2,2,1,1,2,1,1,2,2,2,1,2,1,1,2,2,1,1,2,1,2,2,1,2,1,1]
   ];
   const arr = Array.from($('.randomisation-list:first-of-type').text().split('\n')).slice(1, -1);
-  let result = [];
 
+  let result = [];
   for (let shouldMatch of shouldMatchList) {
     for (let [index, shouldMatchNumber] of shouldMatch.entries()) {
       const lastNumber = arr[index].split(',')[3];
@@ -57,6 +91,7 @@ const isThisWhatYouWant = async (page) => {
       }
       result.push(true);
     }
+
     if (result.length === shouldMatch.length) {
       console.log('MATCHED ARRAY: ' + shouldMatch)
       return true
@@ -65,34 +100,3 @@ const isThisWhatYouWant = async (page) => {
   }
   return false;
 };
-
-(async () => {
-  let seedDelta = 0;
-  const browserList = [];
-  const seedNumberList = [];
-  for (let seq = 0; seq < ASYNC_TASK_COUNT; seq++) {
-    const browser = await puppeteer.launch();
-    browserList.push(browser);
-    seedNumberList.push(INIT_SEED_NUMBER + seq);
-  }
-
-  while(true) {
-    const resultList = await Promise.all(browserList.map(async (browser, seq) => {
-      const seedNumber = seedNumberList[seq] + seedDelta;
-      const page = await browser.newPage();
-      await page.goto(URL);
-      await fillTheFormAndSend(page, seedNumber);
-
-      process.stdout.write(seedNumber + '\n');
-      return { seedNumber, isMatched: await isThisWhatYouWant(page) };
-    }));
-    process.stdout.write('---------------\n');
-    const matched = _.find(resultList, { isMatched: true });
-    if (matched !== undefined) {
-      console.log('MATCHED SEED: ' + matched.seedNumber)
-      break;
-    }
-    seedDelta += ASYNC_TASK_COUNT;
-  }
-  browserList.forEach((browser) => browser.close());
-})();
