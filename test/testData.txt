@@ -1,0 +1,9 @@
+다음 값으로 돌려서 5 나오면 맞음.
+
+const SHOULD_MATCH_LIST = [
+  [2, 1, 1, 2, 2, 1]
+];
+
+  treatmentGroups.value = '1, 2';
+  blockSizes.value = 2;
+  listLength.value = 2 * 3;
