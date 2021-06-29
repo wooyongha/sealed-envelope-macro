@@ -3,7 +3,7 @@ const cheerio = require('cheerio');
 const _ = require('lodash');
 
 const INIT_SEED_NUMBER = 1;
-const ASYNC_TASK_COUNT = 3; // 3개만 줘도 컴퓨터가 힘들어요 ㅠㅠ
+const ASYNC_TASK_COUNT = 3; // 3개만 줘도 컴퓨터가 힘들었던 건 옛말이긴 한데... 컴퓨터를 아낀다면 20개 넘게는 주지 말아주세요.
 const URL = 'https://www.sealedenvelope.com/simple-randomiser/v1/lists';
 const SHOULD_MATCH_LIST = [
   [2,2,1,1,2,1,2,1,2,1,2,1,1,2,2,1,2,1,1,2,2,2,1,1,2,1,1,2,2,1,1,2,1,1,2,2,2,1,2,1,1,2,2,1,2,1,1,2,2,2,1,1,1],
@@ -77,7 +77,8 @@ const isThisWhatYouWant = async (page) => {
     seedNumberList.push(INIT_SEED_NUMBER + seq);
   }
 
-  while (true) {
+  let shouldKeepGoing = true;
+  while (shouldKeepGoing) {
     const resultList = await Promise.all(
         browserList.map(async (browser, seq) => {
           const seedNumber = seedNumberList[seq] + seedDelta;
@@ -86,15 +87,18 @@ const isThisWhatYouWant = async (page) => {
           await fillTheFormAndSend(page, seedNumber);
           process.stdout.write(seedNumber + '\n');
           const isMatched = await isThisWhatYouWant(page);
-          await page.close();
-          return { seedNumber, isMatched };
+          return { seedNumber, isMatched, page };
         })
     );
     process.stdout.write('---------------\n');
-    const matched = _.find(resultList, { isMatched: true });
-    if (matched !== undefined) {
-      console.log('MATCHED SEED: ' + matched.seedNumber)
-      break;
+    for (result of resultList) {
+      const { page, isMatched } = result;
+      await page.close();
+      if (isMatched) {
+        console.log('MATCHED SEED: ' + result.seedNumber)
+        shouldKeepGoing = false;
+        break;
+      }
     }
     seedDelta += ASYNC_TASK_COUNT;
   }
